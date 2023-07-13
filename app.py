@@ -40,3 +40,7 @@ elif o == '/' or o == '//' or o == '%':
     #     print('a / b = ', a / b)
 else:
     print('Operation not recognized!')
+
+
+def add (x, y):
+    return x + y
