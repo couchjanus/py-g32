@@ -1,5 +1,7 @@
 """contacts/helpers.py
 """
+import sys 
+
 def full_name(first_name, last_name):
     """full_name"""
     return " ".join([first_name, last_name])
@@ -12,7 +14,7 @@ def hello(TITLE, prompt='a(dd)|l(ist)|f(ind)|r(emove)|q(uit))'):
 def bye(TITLE):
     """bye"""
     print(f"Thank You for using {TITLE}")
-    exit(0)
+    sys.exit(0)
 
 
 def in_dict(key, value, dictlist):

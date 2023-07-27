@@ -1,6 +1,9 @@
 from .helpers import in_dict, full_name
 import contacts.models as m
 
+def last_id(contacts):
+    return int(contacts[len(contacts) - 1]['id'])
+
 def add_contact():
     contact = {}
     contacts = m.get_contacts()
@@ -18,13 +21,19 @@ def add_contact():
     
     address = input('Enter Address = ').strip()
     
+    if len(contacts) == 0:
+        id = 1
+    else: id = last_id(contacts)+1
+         
     contact = {
+        'id': str(id),
         'First name': first_name.title(),
         'Last name': last_name.title(),
         'Phonenumber': number,
         'Address': address
         }
-    m.set_contact(contact)
+    contacts.append(contact)
+    m.save_contacts(contacts)
     return f"Contact added syccessfully"
 
 def all_contacts():
