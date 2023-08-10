@@ -1,5 +1,5 @@
 
-from todo import __app_name__, __version__
+from todo import __app_name__, __version__, ERRORS, database
 import typer
 
 from typing import Optional
@@ -10,7 +10,7 @@ from rich import print
 from typer import Context
 # pip install typer-shell
 from typer_shell import make_typer_shell
-
+from pathlib import Path
 # app = make_typer_shell()
 
 app = make_typer_shell(prompt="🔥: ", params={"name": "Bob"}, params_path="params.yaml")
@@ -38,6 +38,33 @@ def about():
    python -m {__app_name__} add --help
    """
     )
+
+# init database
+@app.command()
+def init(db_path: str = typer.Option(str(database.DEFAULT_DB_FILE_PATH), "--db-path", "-d", prompt="TODO database location? ")) -> None:
+    """Initialize the TODO database."""
+    app_init_error = database.init_app(db_path)
+    if app_init_error:
+        typer.secho(
+          f"Creating config file failed with {ERRORS[app_init_error]}",
+          fg="red"   
+        )
+        raise typer.Exit(1)
+    
+    db_init_error = database.init_database(Path(db_path))
+    if db_init_error:
+        typer.secho(
+          f"Creating database file failed with {ERRORS[db_init_error]}", 
+          fg="red"  
+        )
+        raise typer.Exit(1)
+    
+    else:
+        typer.secho(
+            f"The {__app_name__} database is {db_path}",
+            fg="green"
+        )
+
 
 @app.command(name="add", short_help="Adds an item")
 @inner_app.command()
