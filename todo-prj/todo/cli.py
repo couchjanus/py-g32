@@ -1,5 +1,5 @@
 
-from todo import __app_name__, __version__, ERRORS, database
+from todo import __app_name__, __version__, ERRORS, database, controller
 import typer
 
 from typing import Optional
@@ -12,6 +12,8 @@ from typer import Context
 from typer_shell import make_typer_shell
 from pathlib import Path
 # app = make_typer_shell()
+
+from typing import List
 
 app = make_typer_shell(prompt="🔥: ", params={"name": "Bob"}, params_path="params.yaml")
 inner_app = make_typer_shell(prompt="🌲: ", params={"name": "Bob"}, params_path="innerparams.yaml")
@@ -66,9 +68,45 @@ def init(db_path: str = typer.Option(str(database.DEFAULT_DB_FILE_PATH), "--db-p
         )
 
 
+def get_todo()->controller.Todo:
+    if database.CONFIG_FILE_PATH.exists():
+        db_path = database.get_database_path(database.CONFIG_FILE_PATH)
+    else:
+        typer.secho(
+            'Config file not found. Please, run "todo init"', 
+            fg="red"
+            
+        )
+        raise typer.Exit(1)
+    if db_path.exists():
+        return controller.Todo(db_path)
+    else:
+        typer.secho(
+            'Database not found. Please< run "todo init"',
+            fg="red"
+        )
+        raise typer.Exit(1)
+
 @app.command(name="add", short_help="Adds an item")
 @inner_app.command()
-def create(task: str) -> None:
+def add(
+    task: List[str] = typer.Argument(...),
+    priority: int = typer.Option(2, "--priority", "-p", min=1, max=3),
+    ) -> None:
+    """Add a new task with description to todo list."""
+    todos = get_todo()
+    todo, error = todos.add(task, priority)
+    if error:
+        typer.secho(
+            f'Added todo failed with "{ERRORS[error]}"', fg="red"
+        )
+        raise typer.Exit(1)
+    else:
+        typer.secho(
+            f"""todo: "{task}" was added """
+            f"""with priority: {priority}""",
+            fg="green"
+        )
     if state["verbose"]:
         print(f"💬 Just added a {task}")
 
