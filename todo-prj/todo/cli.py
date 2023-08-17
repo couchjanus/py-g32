@@ -14,6 +14,8 @@ from pathlib import Path
 # app = make_typer_shell()
 
 from typing import List
+from todo.aliases import StrList
+from tabulate import tabulate
 
 app = make_typer_shell(prompt="🔥: ", params={"name": "Bob"}, params_path="params.yaml")
 inner_app = make_typer_shell(prompt="🌲: ", params={"name": "Bob"}, params_path="innerparams.yaml")
@@ -90,7 +92,8 @@ def get_todo()->controller.Todo:
 @app.command(name="add", short_help="Adds an item")
 @inner_app.command()
 def add(
-    task: List[str] = typer.Argument(...),
+    # task: List[str] = typer.Argument(...),
+    task: StrList = typer.Argument(...),
     priority: int = typer.Option(2, "--priority", "-p", min=1, max=3),
     ) -> None:
     """Add a new task with description to todo list."""
@@ -111,14 +114,76 @@ def add(
         print(f"💬 Just added a {task}")
 
 @app.command(name="remove", short_help="Remove an item")
-@inner_app.command()
-def delete(id: int) -> None:
-    print(f"Hello {id}")
-
-@app.command(name="update", short_help="Update an item")
-def edit(id: int) -> None:
-    print(f"Hello {id}")
+@inner_app.command(name="remove")
+def remove(
+    todo_id: int = typer.Argument(...),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Force deletion without confirmation."
+    )
+    ) -> None:
+    """Remove an Item from Todo List."""
+    todos = get_todo()
     
+    def _remove():
+        todo, error = todos.remove(todo_id)
+        if error:
+            typer.secho(
+                f'Removing todo {todo_id} failed with "{ERRORS[error]}"',
+                fg="red"
+            )
+            raise typer.Exit(1)
+        else:
+            typer.secho(
+                f"Just deleted task {todo['Task']} with id = {todo_id}",
+                fg="green"
+            )
+            
+    
+    if force:
+        _remove()
+    else:
+        todo_list = todos.get_todo_list()
+        try:
+            todo = todo_list[todo_id - 1]
+        except IndexError:
+            typer.secho("Invalid todo_id", fg="red")
+            raise typer.Exit(1)
+        delete = typer.confirm(
+            f"Delete todo {todo_id}: {todo['Task']}? "
+        )
+        if delete:
+            _remove()
+        else:
+            typer.secho("Operation canceled", fg="yellow")
+
+@app.command(name="list", short_help="Print all tasks list.")
+@inner_app.command(name="list")
+def print_all_tasks() -> None:
+    """Print all tasks list."""
+    todos = get_todo()
+    todo_list = todos.get_todo_list()
+    
+    if len(todo_list) == 0:
+        typer.secho(
+            "There are no tasks in the todo list yet.", fg="red"
+        )
+        raise typer.Exit(1)
+    result = [dict(item, **{'Id':i}) for i, item in enumerate(todo_list, 1)]
+    # print(tabulate(todo_list, headers='keys', tablefmt="fancy_grid"))
+    print(tabulate(result, headers='keys', tablefmt="fancy_grid"))
+    
+    
+    
+@app.command(name="done", short_help="Complete a todo by setting it as done using its todo_id.")
+@inner_app.command(name="done")
+def set_done(todo_id: int) -> None:
+    """Complete a todo by setting it as done using its todo_id."""
+    print(f"Hello")
+
+
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(f"💬 {__app_name__} version: {__version__}")
