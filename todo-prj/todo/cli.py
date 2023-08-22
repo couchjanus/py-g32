@@ -186,7 +186,7 @@ def set_done(todo_id: int) -> None:
 
 def _version_callback(value: bool) -> None:
     if value:
-        typer.echo(f"💬 {__app_name__} version: {__version__}")
+        typer.echo(f"Awesome CLI {__app_name__} Version: {__version__}")
         raise typer.Exit()
 
 @app.callback()
