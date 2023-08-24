@@ -45,7 +45,7 @@ def test_add_task_success(mock_json_file):
     assert result.error == SUCCESS
     result = todos.add(["Put other there."], 3)
     read = todos._db_handler.read_todos()
-    assert len(read.todo_list) == 2
+    assert len(read.todo_list) == 3
 
 # def test_add_task_success(mock_json_file):
 #    todos = controller.Todo(mock_json_file)

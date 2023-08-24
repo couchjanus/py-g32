@@ -16,11 +16,13 @@ from pathlib import Path
 from typing import List
 from todo.aliases import StrList
 from tabulate import tabulate
+import logging
 
 app = make_typer_shell(prompt="🔥: ", params={"name": "Bob"}, params_path="params.yaml")
 inner_app = make_typer_shell(prompt="🌲: ", params={"name": "Bob"}, params_path="innerparams.yaml")
 app.add_typer(inner_app, name="dialog", help="Run program in dialogue mode")
 
+logging.basicConfig(filename="todo.log", format='%(asctime)s - %(message)s', level=logging.INFO)
 
 # dialog_app = make_typer_shell(prompt="😎: ")
 
@@ -53,6 +55,7 @@ def init(db_path: str = typer.Option(str(database.DEFAULT_DB_FILE_PATH), "--db-p
           f"Creating config file failed with {ERRORS[app_init_error]}",
           fg="red"   
         )
+        logging.error(f"Creating config file failed with {ERRORS[app_init_error]}")
         raise typer.Exit(1)
     
     db_init_error = database.init_database(Path(db_path))
@@ -61,6 +64,7 @@ def init(db_path: str = typer.Option(str(database.DEFAULT_DB_FILE_PATH), "--db-p
           f"Creating database file failed with {ERRORS[db_init_error]}", 
           fg="red"  
         )
+        logging.error(f"Creating database file failed with {ERRORS[db_init_error]}")
         raise typer.Exit(1)
     
     else:
@@ -68,6 +72,7 @@ def init(db_path: str = typer.Option(str(database.DEFAULT_DB_FILE_PATH), "--db-p
             f"The {__app_name__} database is {db_path}",
             fg="green"
         )
+        logging.warning(f"The {__app_name__} database is {db_path}")
 
 
 def get_todo()->controller.Todo:
@@ -110,6 +115,7 @@ def add(
             f"""with priority: {priority}""",
             fg="green"
         )
+        logging.info(f"TODO # task = {task} with priority = {priority} completed!")
     if state["verbose"]:
         print(f"💬 Just added a {task}")
 
@@ -159,6 +165,29 @@ def remove(
         else:
             typer.secho("Operation canceled", fg="yellow")
 
+@app.command(name="clear")
+def remove_all(
+    force: bool = typer.Option(
+        ...,
+        prompt="Delete all to-dos?",
+        help="Force deletion without confirmation.",
+    ),
+) -> None:
+    """Remove all to-dos."""
+    todos = get_todo()
+    if force:
+        error = todos.remove_all().error
+        if error:
+            typer.secho(
+                f'Removing to-dos failed with "{ERRORS[error]}"',
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(1)
+        else:
+            typer.secho("All to-dos were removed", fg=typer.colors.GREEN)
+    else:
+        typer.echo("Operation canceled")
+
 @app.command(name="list", short_help="Print all tasks list.")
 @inner_app.command(name="list")
 def print_all_tasks() -> None:
@@ -176,13 +205,25 @@ def print_all_tasks() -> None:
     print(tabulate(result, headers='keys', tablefmt="fancy_grid"))
     
     
-    
-@app.command(name="done", short_help="Complete a todo by setting it as done using its todo_id.")
-@inner_app.command(name="done")
-def set_done(todo_id: int) -> None:
-    """Complete a todo by setting it as done using its todo_id."""
-    print(f"Hello")
 
+@app.command()
+def set_done(todo_id: int = typer.Argument(...)) -> None:
+    """Complete a to-do by setting it as done using its TODO_ID."""
+    todos = get_todo()
+    todo, error = todos.set_done(todo_id)
+    if error:
+        typer.secho(
+            f'Completing to-do # "{todo_id}" failed with "{ERRORS[error]}"',
+            fg=typer.colors.RED,
+        )
+        logging.error(f'Completing to-do # "{todo_id}" failed with "{ERRORS[error]}"')
+        raise typer.Exit(1)
+    else:
+        typer.secho(
+            f"""TODO # {todo_id} "{todo['Description']}" completed!""",
+            fg=typer.colors.GREEN,
+        )
+        logging.info(f"TODO # {todo_id} {todo['Description']} completed!")
 
 def _version_callback(value: bool) -> None:
     if value:

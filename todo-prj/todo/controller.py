@@ -19,30 +19,55 @@ class Todo:
         self._db_handler = DBHandler(db_path)
         self.todo = TodoItem()
         
-    def add(self, task: [], priority: int = 2)->TodoResponse:
-        """Add a new todo to database."""
-        task_description = " ".join(task)
+    # def add(self, task: [], priority: int = 2)->TodoResponse:
+    #     """Add a new todo to database."""
+    #     task_description = " ".join(task)
         
-        if not task_description.endswith('.'):
-            task_description += '.'
+    #     if not task_description.endswith('.'):
+    #         task_description += '.'
             
-        self.todo = {
-            'Task': task_description,
-            'Priority': priority,
-            'Done': False 
-        }
+    #     self.todo = {
+    #         'Task': task_description,
+    #         'Priority': priority,
+    #         'Done': False 
+    #     }
         
+    #     read = self._db_handler.read_todos()
+    #     if read.error == DB_READ_ERROR:
+    #         return TodoResponse(self.todo, read.error)
+        
+    #     self.todo_list.append(self.todo)
+        
+    #     write = self._db_handler.write_todos(self.todo_list)
+        
+    #     return TodoResponse(self.todo, write.error)
+    
+    
+    def add(self, task: List[str], priority: int = 2) -> TodoResponse:
+        """Add a new to-do to the database."""
+        
+        description_text = " ".join(task)
+        
+        if not description_text.endswith("."):
+            description_text += "."
+
+        self.todo = {
+            "Task": description_text,
+            "Priority": priority,
+            "Done": False,
+        }
+
         read = self._db_handler.read_todos()
+	        
         if read.error == DB_READ_ERROR:
             return TodoResponse(self.todo, read.error)
-        
-        self.todo_list.append(self.todo)
-        
-        write = self._db_handler.write_todos(self.todo_list)
-        
+	        
+        read.todo_list.append(self.todo)
+	        
+        write = self._db_handler.write_todos(read.todo_list)
+	        
         return TodoResponse(self.todo, write.error)
-        
-    # def get_todo_list(self)->List[Dict[str, Any]]:
+   
     def get_todo_list(self)->TodoList:
         """Return the current todo list."""
         read = self._db_handler.read_todos()
@@ -59,20 +84,27 @@ class Todo:
             return TodoResponse({}, ID_ERROR)
         write = self._db_handler.write_todos(read.todo_list)
         return TodoResponse(self.todo, write.error)
+    
+    def remove_all(self) -> TodoResponse:
+        """Remove all to-dos from the database."""
+        write = self._db_handler.write_todos([])
+        return TodoResponse({}, write.error)
+    
+    def set_done(self, todo_id: int) -> TodoResponse:
+        """Set a to-do as done."""
+        read = self._db_handler.read_todos()
+        if read.error:
+            return TodoResponse({}, read.error)
+        try:
+            self.todo = read.todo_list[todo_id - 1]
+        except IndexError:
+            return TodoResponse({}, ID_ERROR)
+        self.todo["Done"] = True
+
+        write = self._db_handler.write_todos(read.todo_list)
+        return TodoResponse(self.todo, write.error)
 
 
 if __name__ == "__main__":
     test_todo = Todo()
-    
-    # print(test_todo)
-    # print(type(test_todo))
-    # print(dir(test_todo))
-    # print(test_todo.__dict__)
-    # print(Todo.__dict__)
-    # print(Todo.__annotations__)
-    # test_todo.my_method()
-    
-    
-    
-    
-    
+ 
