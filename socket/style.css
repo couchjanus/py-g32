@@ -1,0 +1,17 @@
+/* css */
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.element {
+    background-color: blueviolet;
+    padding: 2px;
+
+}
+
+.element img {
+    max-width: 100%;
+}
