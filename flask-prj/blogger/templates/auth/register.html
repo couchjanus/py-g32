@@ -1,3 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+
+{% block content %}
 <main class="form-signin w-100 m-auto">
     <form method="POST">
      
@@ -22,3 +30,4 @@
       <p class="mt-5 mb-3 text-body-secondary">&copy; 2017–2023</p>
     </form>
   </main>
+  {% endblock %}

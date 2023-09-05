@@ -1,1 +1,40 @@
-<h1>Blog posts</h1>
+{% extends 'layout.html' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block header %}
+    <h1>{{ title }}</h1>
+
+    {% if g.user %}
+    <a href="{{ url_for('blog.create') }}">New post</a>
+    {% endif %}
+
+{% endblock %}
+
+
+<div class="row mb-3">
+{% block content %}
+    {% for post in posts %}
+        <article class="blog-post">
+
+            <header>
+                <h2 class="mb-0">{{ post['title'] }}</h2>
+                <div class="mb-1 blog-post-meta">by {{ post['username'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
+                
+
+            </header>
+
+            <div class="clearfix">
+                <p class="body">{{ post['body'] }}></p>
+            </div>
+
+        </article>
+
+
+    {% endfor %}
+   
+
+{% endblock %}
+</div>
