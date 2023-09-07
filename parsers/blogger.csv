@@ -1,0 +1,14 @@
+id,author_id,created,title,body
+1,2,2023-09-05 18:16:04,Template File Extension,"As stated above, any file can be loaded as a template, regardless of file extension. Adding a .jinja extension, like user.html.jinja may make it easier for some IDEs or editor plugins, but is not required. Autoescaping, introduced later, can be applied based on file extension, so you’ll need to take the extra suffix into account in that case.
+
+Another good heuristic for identifying templates is that they are in a templates folder, regardless of extension. This is a common layout for projects."
+2,2,2023-09-05 18:16:47,Функція render_template,"Функція render_template() викликає механізм шаблонів Jinja2, який постачається разом із фреймворком Flask. Ця функція приймає назву файлу шаблону та список аргументів шаблону та повертає шаблон, де всі заповнювачі замінені фактичними значеннями.
+
+Операція, яка перетворює шаблон на сторінку HTML, називається рендерингом. Щоб відобразити шаблон, потрібно імпортувати функцію render_template(). 
+
+Jinja2 замінює {{ ... }} блоки відповідними значеннями, заданими аргументами, що передаються при виклику render_template().
+
+Render_template() Flask приймає лише один позиційний аргумент - ім’я шаблону. Усі інші аргументи мають бути організовані у словник.
+render_template('blog/index.html', posts=posts)
+
+"
